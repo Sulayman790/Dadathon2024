@@ -1,0 +1,12 @@
+1. Décrire le profil de la firme
+2. État récapitulatif de la firme (faire ça rapidement, pas passé bcp de temps) 
+3. Board of directors => changements récent dans le board ? Depuis cb de temps ? (salaire du board voir Yahoo Finance) , board diversifié et différence de salaire raisonnable .
+4. Commité de gouvernance => est-ce que la firme est bien géré (est-ce qu'ils ont deja caché de l'information)
+5. Commité de rémunération => Est-ce que les salaire sont raisonnable 
+6. Principaux actionnaires de la compagnie => autres que les banques, quels est le principale joueur mise à part les banques
+7. Sommaire des nouvelles (bons ou pas bons)
+8. Rapport annuels => stratégie de l'entreprise et risques perçu par l'entreprise. Regarder l'évolution du risque dans le temps (important)
+9. Pour les minières par exemple => réputation importantes
+10. Comparaison avec les concurrants 
+11. Performance de la firme => certain BUY sont des HOLD etc..
+12. Regarder les performances ( si toutes les firmes mettent un BUY, cela veut dire que tous le monde l'a deja acheté , deja pricé ) => On cherche les changements de sentiments  
