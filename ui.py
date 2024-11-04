@@ -7,30 +7,14 @@ app = Flask(__name__)
 def generate_overview_prompt(company_name):
     prompt = {
         "role": "system",
-        "content": "Tu es un conseiller pour analyste financier.",
+        "content": "You are a financial advisor for a financial analyst. Answer in English.",
         "instructions": {
             "company_name": company_name,
             "overview": {
-                "introduction": "Présente succinctement la firme.",
-                "board_of_directors": "Liste les membres du Conseil d'Administration, en commençant par le Président.",
-                "board_committees": "Détaille les différents comités du Conseil d'Administration (par exemple : audit, nomination, gouvernance, etc.).",
-                "executive_team": "Présente les membres de l'équipe dirigeante avec leurs rôles et responsabilités."
-            }
-        }
-    }
-    return json.dumps(prompt, indent=4, ensure_ascii=False)
-
-def generate_shareholders_prompt(company_name):
-    prompt = {
-        "role": "system",
-        "content": "Tu es un conseiller pour analyste financier.",
-        "instructions": {
-            "company_name": company_name,
-            "shareholders": {
-                "top_institutional_holders": {
-                    "description": "Liste les principaux actionnaires institutionnels avec leurs parts, le nombre d'actions détenues, et la date du dernier rapport.",
-                    "fields": ["name", "shares", "date_reported", "percent_outstanding"]
-                }
+                "introduction": "Briefly introduce the company.",
+                "board_of_directors": "List the members of the Board of Directors, starting with the Chairman.",
+                "board_committees": "Detail the various committees of the Board (e.g., audit, nomination, governance, etc.).",
+                "executive_team": "Present the executive team members with their roles and responsibilities."
             }
         }
     }
@@ -39,11 +23,28 @@ def generate_shareholders_prompt(company_name):
 def generate_strategy_prompt(company_name):
     prompt = {
         "role": "system",
-        "content": "Tu es un conseiller pour analyste financier.",
+        "content": "You are a financial advisor for a financial analyst. Answer in English.",
         "instructions": {
             "company_name": company_name,
             "strategy_and_risk": {
-                "annual_report": "Analyse la stratégie de la firme et les principaux risques d’affaires en se basant sur le rapport annuel."
+                "annual_report": "Analyze the company's strategy and key business risks based on the annual report.",
+                "financial_metrics": [
+                    "Net margin (%)",
+                    "ROE (Return on Equity)",
+                    "Immediate liquidity ratio",
+                    "Interest coverage ratio",
+                    "Debt/EBITDA ratio",
+                    "EPS growth rate",
+                    "PER (Price-to-Earnings Ratio)",
+                    "EV/EBITDA",
+                    "Free Cash Flow Yield",
+                    "Dividend Yield (%)",
+                    "Global ESG Score",
+                    "Market share comparison",
+                    "Market share changes",
+                    "Strategic investments and new products",
+                    "Crisis resilience"
+                ]
             }
         }
     }
@@ -51,7 +52,6 @@ def generate_strategy_prompt(company_name):
 
 def invoke_bedrock_agent(prompt_json):
     try:
-        # Configuration du client AWS Bedrock avec les informations d'identification
         client = boto3.client(
             service_name='bedrock-agent-runtime',
             region_name='us-west-2',
@@ -59,22 +59,19 @@ def invoke_bedrock_agent(prompt_json):
             aws_secret_access_key="0pkguMOU12ALmsPIq8fV6h66jIwFgHYX5GR02ynt"
         )
         
-        # Utilise l'ID exact du modèle textuel pour Claude 3.5
         agent_id = 'LZ3IIASMX8'
         agent_alias_id = '6LPDL4ANZH'
         session_id = "46c53a4c-da98-48c6-ac6c-925948d8fc45"
         
-        # Formater les messages pour l'API Messages
         messages_payload = {
             "messages": [
-                {"role": "user", "content": f"Voici le prompt JSON pour l'entreprise : {prompt_json}"}
+                {"role": "user", "content": f"Here is the JSON prompt for the company: {prompt_json}"}
             ],
             "max_tokens": 2000
         }
 
         payload = json.dumps(messages_payload)
 
-        # Envoyer la requête à l'API Messages
         response = client.invoke_agent(
             agentId=agent_id,
             agentAliasId=agent_alias_id,
@@ -86,7 +83,6 @@ def invoke_bedrock_agent(prompt_json):
             completion += event["chunk"]["bytes"].decode("utf-8")
         print(completion)
 
-        # Extract the generated content from the response
         if completion:
             return completion
         else:
@@ -125,7 +121,7 @@ html_code = """
             margin-top: 50px;
         }
         .search-bar {
-            width: 80%;
+            width: calc(100% - 100px);
             padding: 10px;
             font-size: 16px;
             border: 1px solid #333;
@@ -146,7 +142,7 @@ html_code = """
             cursor: pointer;
             border: none;
             color: #fff;
-            background-color: #4CAF50;
+            background-color: #FF9800;
             border-radius: 4px;
             margin-left: 10px;
         }
@@ -159,10 +155,11 @@ html_code = """
             max-height: 300px;
             overflow-y: auto;
             overflow-wrap: break-word;
-            width: 100%;
+            width: calc(100% - 40px);
             white-space: pre-wrap;
             font-family: monospace;
             color: #ffffff;
+            word-break: break-word;
         }
     </style>
 </head>
@@ -172,7 +169,6 @@ html_code = """
         <h2>Financial AI Assistant</h2>
         <select id="queryType" class="query-type">
             <option value="overview">Overview</option>
-            <option value="shareholders">Shareholders</option>
             <option value="strategy">Strategy & Risks</option>
         </select>
         <input type="text" id="searchInput" class="search-bar" placeholder="Enter the company name...">
@@ -193,7 +189,7 @@ html_code = """
                 body: JSON.stringify({ query, queryType })
             });
             const data = await response.json();
-            document.getElementById("results").innerHTML = `<pre>${JSON.stringify(data.result, null, 2)}</pre>`;
+            document.getElementById("results").innerHTML = `<pre>${data.result}</pre>`;
         }
     </script>
 </body>
@@ -211,18 +207,12 @@ def search():
     query_type = data.get("queryType", "overview")
 
     if company_name:
-        # Générer le prompt en fonction du type de requête
         if query_type == "overview":
             prompt_json = generate_overview_prompt(company_name)
-        elif query_type == "shareholders":
-            prompt_json = generate_shareholders_prompt(company_name)
         elif query_type == "strategy":
             prompt_json = generate_strategy_prompt(company_name)
         
-        # Envoyer le JSON structuré au modèle Bedrock
         result = invoke_bedrock_agent(prompt_json)
-        
-        # Retourner la réponse à l'utilisateur
         return jsonify({"result": result})
     else:
         return jsonify({"result": "No company name provided"}), 400
